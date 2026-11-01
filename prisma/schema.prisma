@@ -1,0 +1,80 @@
+// おつまみアプリのDBスキーマ
+// Prisma の書き方は Java の JPA エンティティに近い:
+//   model = @Entity, @id = @Id, @relation = @ManyToOne など
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// 合うお酒の種類
+enum DrinkType {
+  beer
+  sake
+  highball
+  wine
+  shochu
+  other
+}
+
+/// レシピの出どころ
+enum RecipeSource {
+  ai
+  manual
+}
+
+/// ユーザー（id は Supabase Auth のユーザーIDと同じ値を入れる）
+model User {
+  id        String   @id @db.Uuid
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  recipes  Recipe[]
+  cookLogs CookLog[]
+
+  @@map("users")
+}
+
+/// おつまみのレシピ
+model Recipe {
+  id          String       @id @default(uuid()) @db.Uuid
+  userId      String       @map("user_id") @db.Uuid
+  title       String
+  /// 例: [{ "name": "キャベツ", "amount": "1/4玉" }]
+  ingredients Json
+  /// 例: ["キャベツをちぎる", "ごま油と塩で和える"]
+  steps       Json
+  cookMinutes Int          @map("cook_minutes")
+  drinkType   DrinkType    @map("drink_type")
+  source      RecipeSource @default(manual)
+  isFavorite  Boolean      @default(false) @map("is_favorite")
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cookLogs CookLog[]
+
+  @@index([userId, createdAt])
+  @@map("recipes")
+}
+
+/// 作った記録
+model CookLog {
+  id       String   @id @default(uuid()) @db.Uuid
+  recipeId String   @map("recipe_id") @db.Uuid
+  userId   String   @map("user_id") @db.Uuid
+  /// 1〜5（範囲チェックはアプリ側で行う）
+  rating   Int
+  memo     String?
+  cookedAt DateTime @default(now()) @map("cooked_at")
+
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, cookedAt])
+  @@map("cook_logs")
+}
