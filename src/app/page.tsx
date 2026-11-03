@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { signOut } from "@/app/auth/actions";
 import { requireUser } from "@/lib/auth";
+import { SuggestForm } from "@/app/suggest/SuggestForm";
 
 // 画面の枠（ヘッダーなど）は事前に作っておいてすぐ表示し、
 // ログイン情報が必要な部分だけを <Suspense> の中で後から流し込む（Next.js 16 の Cache Components）
@@ -24,8 +25,10 @@ export default function Home() {
       </Suspense>
 
       <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-        ここにおつまみ提案の画面を作っていきます。
+        お酒と食材を選ぶと、AI がおつまみを3品提案します。
       </p>
+
+      <SuggestForm />
     </main>
   );
 }
