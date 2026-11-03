@@ -5,6 +5,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   missing_code: "ログイン情報を受け取れませんでした。もう一度お試しください。",
   auth_failed: "ログインに失敗しました。もう一度お試しください。",
   oauth_start_failed: "Google ログインを開始できませんでした。",
+  user_sync_failed: "ログイン処理中にエラーが発生しました。時間をおいてもう一度お試しください。",
 };
 
 // ログイン済みのユーザーがこのページを開いた場合は、proxy.ts でトップへ戻している
