@@ -5,16 +5,26 @@ import { PrismaClient } from "@/generated/prisma/client";
 // 接続が増え続けないように PrismaClient を1つだけ使い回す（シングルトン）
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-function createPrismaClient() {
+function getPrismaClient(): PrismaClient {
+  if (globalForPrisma.prisma) return globalForPrisma.prisma;
+
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
     throw new Error("DATABASE_URL が設定されていません（.env を確認してください）");
   }
-  return new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
+  const client = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
+  globalForPrisma.prisma = client;
+  return client;
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+/**
+ * 実際に DB を使った時点で初めて接続を作る（遅延初期化）。
+ * import しただけでは何もしないので、DATABASE_URL のないビルド時にも落ちない。
+ */
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    const client = getPrismaClient();
+    const value = Reflect.get(client, prop, client);
+    return typeof value === "function" ? value.bind(client) : value;
+  },
+});
