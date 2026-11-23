@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { startTransition, useActionState, useState, type FormEvent } from "react";
 import { suggestAction, type SuggestState } from "./actions";
 import { COOK_MINUTES_OPTIONS, DRINK_LABELS, DRINK_TYPES } from "@/lib/drinks";
 import type { DrinkType } from "@/generated/prisma/enums";
@@ -12,15 +12,22 @@ const initialState: SuggestState = { status: "idle" };
 export function SuggestForm() {
   const [state, formAction, isPending] = useActionState(suggestAction, initialState);
 
-  // React 19 ではフォーム送信後に入力欄が初期化されるため、
-  // 入力内容を state として持ち、送信後も選んだ内容が残るようにする
   const [drinkType, setDrinkType] = useState<DrinkType>(DRINK_TYPES[0]);
   const [ingredients, setIngredients] = useState("");
   const [maxMinutes, setMaxMinutes] = useState<number>(15);
 
+  // <form action={...}> に渡すと、React 19 は送信後にフォームを自動でリセットする。
+  // ラジオボタンは state が変わらないため見た目だけ選択が外れ、次の送信が失敗してしまう。
+  // そこで送信を自分で受け取り、リセットが起きない形で Server Action を呼ぶ。
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    startTransition(() => formAction(formData));
+  }
+
   return (
     <div className="mt-8">
-      <form action={formAction} className="space-y-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <fieldset>
           <legend className="font-semibold">今日のお酒は？</legend>
           <div className="mt-3 flex flex-wrap gap-2">
