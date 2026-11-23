@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type CurrentUser = {
@@ -9,6 +10,10 @@ export type CurrentUser = {
 
 /** ログイン中のユーザーを返す。ログインしていなければ null。 */
 export async function getCurrentUser(): Promise<CurrentUser | null> {
+  // ログイン状態の確認ではトークンの有効期限を「今の時刻（Date.now()）」と比べるため、
+  // 先読み（プリレンダリング）では実行せず、実際のアクセスが来てから実行するよう Next.js に伝える
+  await connection();
+
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.auth.getClaims();
   const claims = data?.claims;
