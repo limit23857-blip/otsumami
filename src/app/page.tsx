@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { signOut } from "@/app/auth/actions";
+import { AppHeader } from "@/components/AppHeader";
 import { requireUser } from "@/lib/auth";
 import { SuggestForm } from "@/app/suggest/SuggestForm";
 
@@ -8,17 +8,7 @@ import { SuggestForm } from "@/app/suggest/SuggestForm";
 export default function Home() {
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-10">
-      <header className="flex items-center justify-between gap-4">
-        <h1 className="text-xl font-bold">🍺 今夜のおつまみ</h1>
-        <form action={signOut}>
-          <button
-            type="submit"
-            className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
-          >
-            ログアウト
-          </button>
-        </form>
-      </header>
+      <AppHeader />
 
       <Suspense fallback={<p className="mt-10 h-7 w-48 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />}>
         <Greeting />

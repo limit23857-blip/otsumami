@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
 import { suggestAction, type SuggestState } from "./actions";
 import { COOK_MINUTES_OPTIONS, DRINK_LABELS, DRINK_TYPES } from "@/lib/drinks";
 import type { DrinkType } from "@/generated/prisma/enums";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 const initialState: SuggestState = { status: "idle" };
 
@@ -97,9 +99,12 @@ export function SuggestForm() {
           <ul className="mt-8 space-y-4">
             {state.recipes.map((recipe) => (
               <li key={recipe.id} className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-                <div className="flex items-baseline justify-between gap-4">
-                  <h3 className="text-lg font-bold">{recipe.title}</h3>
-                  <span className="shrink-0 text-sm text-zinc-500">⏱ {recipe.cookMinutes}分</span>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-bold">{recipe.title}</h3>
+                    <span className="text-sm text-zinc-500">⏱ {recipe.cookMinutes}分</span>
+                  </div>
+                  <FavoriteButton recipeId={recipe.id} initialFavorite={false} size="sm" />
                 </div>
 
                 <h4 className="mt-4 text-sm font-semibold text-zinc-600 dark:text-zinc-400">材料</h4>
@@ -118,6 +123,10 @@ export function SuggestForm() {
                     <li key={i}>{step}</li>
                   ))}
                 </ol>
+
+                <Link href={`/recipes/${recipe.id}`} className="mt-4 inline-block text-sm font-semibold text-amber-600 hover:underline">
+                  作ったら記録する →
+                </Link>
               </li>
             ))}
           </ul>
