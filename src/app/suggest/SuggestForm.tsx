@@ -1,13 +1,20 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { suggestAction, type SuggestState } from "./actions";
 import { COOK_MINUTES_OPTIONS, DRINK_LABELS, DRINK_TYPES } from "@/lib/drinks";
+import type { DrinkType } from "@/generated/prisma/enums";
 
 const initialState: SuggestState = { status: "idle" };
 
 export function SuggestForm() {
   const [state, formAction, isPending] = useActionState(suggestAction, initialState);
+
+  // React 19 ではフォーム送信後に入力欄が初期化されるため、
+  // 入力内容を state として持ち、送信後も選んだ内容が残るようにする
+  const [drinkType, setDrinkType] = useState<DrinkType>(DRINK_TYPES[0]);
+  const [ingredients, setIngredients] = useState("");
+  const [maxMinutes, setMaxMinutes] = useState<number>(15);
 
   return (
     <div className="mt-8">
@@ -15,9 +22,16 @@ export function SuggestForm() {
         <fieldset>
           <legend className="font-semibold">今日のお酒は？</legend>
           <div className="mt-3 flex flex-wrap gap-2">
-            {DRINK_TYPES.map((type, i) => (
+            {DRINK_TYPES.map((type) => (
               <label key={type} className="cursor-pointer">
-                <input type="radio" name="drinkType" value={type} defaultChecked={i === 0} className="peer sr-only" />
+                <input
+                  type="radio"
+                  name="drinkType"
+                  value={type}
+                  checked={drinkType === type}
+                  onChange={() => setDrinkType(type)}
+                  className="peer sr-only"
+                />
                 <span className="inline-block rounded-full border border-zinc-300 px-4 py-2 text-sm transition peer-checked:border-amber-500 peer-checked:bg-amber-500 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-amber-400 dark:border-zinc-700">
                   {DRINK_LABELS[type]}
                 </span>
@@ -35,6 +49,8 @@ export function SuggestForm() {
             name="ingredients"
             type="text"
             maxLength={200}
+            value={ingredients}
+            onChange={(e) => setIngredients(e.target.value)}
             placeholder="例: キャベツ、豚バラ、卵"
             className="mt-2 w-full rounded-lg border border-zinc-300 bg-transparent px-3 py-2 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200 dark:border-zinc-700"
           />
@@ -45,7 +61,14 @@ export function SuggestForm() {
           <div className="mt-3 flex flex-wrap gap-2">
             {COOK_MINUTES_OPTIONS.map((min) => (
               <label key={min} className="cursor-pointer">
-                <input type="radio" name="maxMinutes" value={min} defaultChecked={min === 15} className="peer sr-only" />
+                <input
+                  type="radio"
+                  name="maxMinutes"
+                  value={min}
+                  checked={maxMinutes === min}
+                  onChange={() => setMaxMinutes(min)}
+                  className="peer sr-only"
+                />
                 <span className="inline-block rounded-full border border-zinc-300 px-4 py-2 text-sm transition peer-checked:border-amber-500 peer-checked:bg-amber-500 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-amber-400 dark:border-zinc-700">
                   {min}分以内
                 </span>
